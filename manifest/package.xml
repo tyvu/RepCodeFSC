@@ -2,45 +2,42 @@
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
         <members>AccountRepCodeSharing</members>
-        <name>ApexClass</name>
-    </types>
-    <types>
         <members>FinancialAccountRepCodeSharing</members>
         <name>ApexClass</name>
     </types>
+   
     <types>
         <members>UserRepCodeSharingTrigger</members>
+         <members>AccountRepCodeSharingTrigger</members>
+          <members>FinancialAccountRepCodeSharingTrigger</members>
         <name>ApexTrigger</name>
     </types>
-    <types>
-        <members>AccountRepCodeSharingTrigger</members>
-        <name>ApexTrigger</name>
-    </types>
-    <types>
-        <members>FinancialAccountRepCodeSharingTrigger</members>
-        <name>ApexTrigger</name>
-    </types>
-
+   
     <types>
         <members>Rep_Code_Master__c</members>
+         <members>Rep_Code_User__c</members>
+          <members>Account_Rep_Code__c</members>
+            <members>Financial_Account_RepCode__c</members>
+             <members>Sharing_Configuration__c</members>
         <name>CustomObject</name>
     </types>
+   
+   
     <types>
-        <members>Rep_Code_User__c</members>
-        <name>CustomObject</name>
-    </types>
-    <types>
-        <members>Account_Rep_Code__c</members>
-        <name>CustomObject</name>
-    </types>
-    <types>
-        <members>Financial_Account_RepCode__c</members>
-        <name>CustomObject</name>
-    </types>
-    <types>
-        <members>Sharing_Configuration__c</members>
-        <name>CustomObject</name>
-    </types>
+		<members>Rep_Code_Master__c.All</members>
+		<members>Rep_Code_User__c.All</members>
+		<members>Sharing_Configuration__c.All</members>
+		<name>ListView</name>
+	</types>
+	
+	<types>
+		<members>Account_Rep_Code__c-Account - Rep Code Layout</members>
+		<members>Financial_Account_RepCode__c-Financial Account - RepCode Layout</members>
+		<members>Rep_Code_Master__c-Rep Code Master Layout</members>
+		<members>Rep_Code_User__c-Rep Code - User Layout</members>
+		<members>Sharing_Configuration__c-Sharing Configuration Layout</members>
+		<name>Layout</name>
+	</types>
     
     <version>56.0</version>
 </Package>
