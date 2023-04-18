@@ -1,7 +1,7 @@
 public class AccountRepCodeSharing {
     
 	public static boolean manualUserRepCodeChangeShare(String sAction, Map<ID,Rep_Code_User__c> rcOldMaps, Map<ID,Rep_Code_User__c> rcNewMaps){ 
-	   // Create new sharing object for the custom object Job.
+	   // Create new sharing object for Account and related.
 	   List<AccountShare> acctShares = new List<AccountShare>();
 	   List<Account_Rep_Code__c> arcs = new List<Account_Rep_Code__c>();
 	   if (sAction =='Update') { 
