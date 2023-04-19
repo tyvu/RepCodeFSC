@@ -42,6 +42,10 @@
         <members>Admin</members>
         <name>Profile</name>
     </types>
+    <types>
+		<members>AccountContactRelation.PersonAccountID__c</members>
+		<name>CustomField</name>
+	</types>
     
     <version>56.0</version>
 </Package>

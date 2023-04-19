@@ -24,7 +24,7 @@ public with sharing class FinancialAccountRepCodeSharing {
 				}
 			}
 			
-			farcs = [Select ID, Financial_Account__c,Rep_Code__c from Financial_Account_RepCode__c where Rep_Code__c in :oldRCIDs ];
+            farcs = [Select ID, Financial_Account__c,Rep_Code__c from Financial_Account_RepCode__c where Rep_Code__c in :oldRCIDs ];
 			Set<ID> facctIDs = new Set<ID>();
 			
 			
@@ -118,6 +118,7 @@ public with sharing class FinancialAccountRepCodeSharing {
         }
       return true;
    }
+   
    
     public static boolean manualFinancialAccountRepCodeChangeShare(String sAction, Map<ID,Financial_Account_RepCode__c> arcOlds, Map<ID,Financial_Account_RepCode__c> arcNews){
  // Create new sharing object for the custom object.
@@ -249,11 +250,13 @@ public static boolean relatedAccountChangeShare(String sAction, List<FinServ__Fi
            facctIDs.add(rcu.ParentID);
    }
    
-   lFAccounts = [SELECT Id, FinServ__Household__c FROM FinServ__FinancialAccount__c
+   //20230419 tyvu - add field  FinServ__Household__c + FinServ__PrimaryOwner__c
+   lFAccounts = [SELECT Id, FinServ__PrimaryOwner__c, FinServ__Household__c FROM FinServ__FinancialAccount__c
                        where ID IN :facctIDs];
    
    for (FinServ__FinancialAccount__c ffa:lFAccounts) {
-       acctIDs.add(ffa.FinServ__Household__c);
+       acctIDs.add(ffa.FinServ__PrimaryOwner__c);
+       if (ffa.FinServ__Household__c != NUll) acctIDs.add(ffa.FinServ__Household__c);
    }	
    
    if (sAction =='Delete') { //remove sharing
@@ -265,6 +268,8 @@ public static boolean relatedAccountChangeShare(String sAction, List<FinServ__Fi
            Database.DeleteResult[] srs = Database.delete(lAccountShares,false); 
            system.debug(srs);
 
+           //20230419 tyvu - remove sharings for related objects, except Financial Account
+           AccountRepCodeSharing.relatedObjectsAccountChangeShare('Delete',lAccountShares,FALSE);
        }
        
    }
@@ -276,6 +281,18 @@ public static boolean relatedAccountChangeShare(String sAction, List<FinServ__Fi
                
                if (ash.ParentID == rc.ID) {
                    AccountShare fAShares = new AccountShare();
+                   //20230419 tyvu - add field FinServ__Household__c + FinServ__PrimaryOwner__c
+                   fAShares.AccountID = rc.FinServ__PrimaryOwner__c;
+                   fAShares.UserOrGroupId = ash.UserOrGroupId;
+                   fAShares.RowCause = 'Manual';
+                   fAShares.AccountAccessLevel = 'Edit';
+                   fAShares.OpportunityAccessLevel = 'Edit';
+                   fAShares.CaseAccessLevel = 'Edit';
+                   
+                   //for primary owner
+                   lAccountShares.add(fAShares);
+                   
+                   fAShares = new AccountShare(); 
                    fAShares.AccountID = rc.FinServ__Household__c;
                    fAShares.UserOrGroupId = ash.UserOrGroupId;
                    fAShares.RowCause = 'Manual';
@@ -283,7 +300,10 @@ public static boolean relatedAccountChangeShare(String sAction, List<FinServ__Fi
                    fAShares.OpportunityAccessLevel = 'Edit';
                    fAShares.CaseAccessLevel = 'Edit';
                    
+                   //for household
                    lAccountShares.add(fAShares);
+
+
                }
            }
            
@@ -293,6 +313,8 @@ public static boolean relatedAccountChangeShare(String sAction, List<FinServ__Fi
        {
            Database.SaveResult[] srs = Database.insert(lAccountShares,false);
            system.debug(srs);
+           //20230419 tyvu - add sharings for related objects, except Financial Account
+           AccountRepCodeSharing.relatedObjectsAccountChangeShare('Adding',lAccountShares,FALSE);
 
        }
        

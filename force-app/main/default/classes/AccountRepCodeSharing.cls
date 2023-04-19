@@ -1,4 +1,4 @@
-public class AccountRepCodeSharing {
+public with sharing class AccountRepCodeSharing {
     
 	public static boolean manualUserRepCodeChangeShare(String sAction, Map<ID,Rep_Code_User__c> rcOldMaps, Map<ID,Rep_Code_User__c> rcNewMaps){ 
 	   // Create/update new sharing object for Account and related objects
@@ -60,9 +60,7 @@ public class AccountRepCodeSharing {
 				system.debug('sharing deletion result - ' + srs);
 			   
 			   //call other methods to delete sharings for related objects
-			   //a. Financial Account
-			   //relatedFinancialAccountChangeShare('Delete',acctShares);
-			   relatedObjectsAccountChangeShare('Delete',acctShares);
+			   relatedObjectsAccountChangeShare('Delete',acctShares, True);
 			   
 			}
 	   
@@ -120,9 +118,7 @@ public class AccountRepCodeSharing {
 		   Database.SaveResult[] srs = Database.insert(acctShares,false);	 
 		   system.debug(srs);
 		   //call other methods to add sharings for related objects
-		   //a. Financial Account
-		   //relatedFinancialAccountChangeShare('Adding',acctShares);
-		   relatedObjectsAccountChangeShare('Adding',acctShares);
+		   relatedObjectsAccountChangeShare('Adding',acctShares,True);
 	   }
 	 return true;
   }	
@@ -184,9 +180,7 @@ public class AccountRepCodeSharing {
 			{
 			   Database.DeleteResult[] srs = Database.delete(acctShares,false); 
 			   //call other methods to delete sharings for related objects
-			   //a. Financial Account
-			   //relatedFinancialAccountChangeShare('Delete',acctShares);
-			   relatedObjectsAccountChangeShare('Delete',acctShares);
+			   relatedObjectsAccountChangeShare('Delete',acctShares,TRUE);
 			}
 	  
 	 } 
@@ -240,9 +234,7 @@ public class AccountRepCodeSharing {
 		   Database.SaveResult[] srs = Database.insert(acctShares,false);
 		   system.debug(srs);
 		   //call other methods to add sharings for related objects
-		   //a. Financial Account
-		   //relatedFinancialAccountChangeShare('Adding',acctShares);
-		   relatedObjectsAccountChangeShare('Adding',acctShares);
+		   relatedObjectsAccountChangeShare('Adding',acctShares, True);
 
 	   }
 			 
@@ -250,84 +242,95 @@ public class AccountRepCodeSharing {
 		  
   }
   
-  /*
-  public static boolean relatedFinancialAccountChangeShare(String sAction, List<AccountShare> lAccountShares){ 
-	   list<FinServ__FinancialAccount__Share> lFAccountShares = new list<FinServ__FinancialAccount__Share>();
-	   list<FinServ__FinancialAccount__c>  lFAccounts = new list<FinServ__FinancialAccount__c>();
-	   Set<ID> acctIDs = new set<ID>();
-	   Set<ID> userIDs = new set<ID>();
-	   for (AccountShare rcu:lAccountShares) {
-			   acctIDs.add(rcu.AccountId);
-			   userIDs.add(rcu.UserOrGroupId);
-	   }
-	   
-	   lFAccounts = [SELECT Id, FinServ__Household__c FROM FinServ__FinancialAccount__c
-						   where FinServ__Household__c IN :acctIDs];
-	   
-	   if (sAction =='Delete') { //remove sharing
-		   lFAccountShares = [SELECT Id, UserOrGroupId, ParentId, RowCause FROM FinServ__FinancialAccount__Share where UserOrGroupId IN :userIDs
-							   AND ParentId in :lFAccounts and RowCause='Manual'];
-							   
-		   if (lFAccountShares.size()>0) 
-		   {
-			   Database.DeleteResult[] srs = Database.delete(lFAccountShares,false); 
-			   system.debug(srs);
+   
+  public static boolean relatedObjectsAccountChangeShare(String sAction, List<AccountShare> lAccountShares, Boolean financialAcccountIncluded) {
+	list<Sharing_Configuration__c> sojSC = [select ID,Primary_Object__c, Related_Object__c, Lookup_Field_Name__c 
+	from Sharing_Configuration__c where Active__c=true];
+	
+	List<sObject> sobjRelatedList = new List<sObject>();
+	for (Sharing_Configuration__c sc:sojSC)
+	{
+		//check if  including Financial account object
+		if  (financialAcccountIncluded == TRUE || sc.Related_Object__c!='FinServ__FinancialAccount__c') {
+			List<sObject> sobjtmp = new List<sObject>();
+			if (sc.Related_Object__c =='AccountContactRelation') sobjtmp = retrieveAccountContactRelationChangeShare(sAction,lAccountShares);
+			else sobjtmp	=  retrieveChangeShare(sAction,lAccountShares,sc.Related_Object__c,sc.Lookup_Field_Name__c) ;
+			
+			if (sobjtmp.size()>0)  sobjRelatedList.addAll(sobjtmp);
+		}
+		
+		
+	}
+	
+	if (sAction =='Delete') {
+		Delete sobjRelatedList;
+	}
+	else {
+		
+		Insert sobjRelatedList;
+	}
+	
+	Return true;
+ }
 
-		   }
-		   
-	   }
-	   
-	   else {  //add sharing
-		   
-		   for (FinServ__FinancialAccount__c rc : lFAccounts ) {
-			   for (AccountShare ash: lAccountShares) {
-				   
-				   if (ash.AccountId == rc.FinServ__Household__c) {
-					   FinServ__FinancialAccount__Share fFAShares = new FinServ__FinancialAccount__Share();
-					   fFAShares.ParentId = rc.id;
-					   fFAShares.UserOrGroupId = ash.UserOrGroupId;
-					   fFAShares.RowCause = 'Manual';
-					   fFAShares.AccessLevel = 'Edit';
+ public static List<sObject> retrieveAccountContactRelationChangeShare(String sAction, List<AccountShare> lAccountShares){ 
+	Set<ID> acctIDs = new set<ID>();
+	Set<ID> userIDs = new set<ID>();
+		List<AccountShare> lrtnAcct = new list<AccountShare>();
+	for (AccountShare rcu:lAccountShares) {
+			acctIDs.add(rcu.AccountId);
+			userIDs.add(rcu.UserOrGroupId);
+	}
+	
+	List<AccountContactRelation> lAS = [SELECT Id, AccountId, PersonAccountID__c, Roles, IsDirect FROM AccountContactRelation where AccountId in :acctIDs];
+	set<ID> spAct = new set<ID>();
+			for (AccountContactRelation acr:lAS) {
+				spAct.add(acr.PersonAccountID__c);
+				
+			}
+	
+	//retrieve account share list for related contacts	
+
+	
+	if (sAction =='Delete') {
+			lrtnAcct = [SELECT Id, AccountId, UserOrGroupId, RowCause FROM AccountShare where AccountId IN :spAct AND UserOrGroupId in :userIDs AND RowCause ='Manual' ];
+		}
+	else {
+		for (AccountContactRelation rc : lAS ) {
+			for (AccountShare ash: lAccountShares) {
+				
+				if (ash.AccountId == rc.AccountId) {
+					
+					AccountShare actSh = new AccountShare();
+					 
+					// Set the ID of record being shared.
+					 actSh.AccountId = rc.PersonAccountID__c;
+					  // Set the ID of user or group being granted access.
+					 actSh.UserOrGroupId = ash.UserOrGroupId;
 					   
-					   lFAccountShares.add(fFAShares);
-				   }
-			   }
-			   
-		   }
-		   
-		   if (lFAccountShares.size()>0) 
-		   {
-			   Database.SaveResult[] srs = Database.insert(lFAccountShares,false);
-			   system.debug(srs);
-
-		   }
-		   
-	   }
-	   return true;
-  }
-  */
-
-   
-public static boolean relatedObjectsAccountChangeShare(String sAction, List<AccountShare> lAccountShares) {
-   list<Sharing_Configuration__c> sojSC = [select ID,Primary_Object__c, Related_Object__c, Lookup_Field_Name__c from Sharing_Configuration__c];
-   List<sObject> sobjRelatedList = new List<sObject>();
-   for (Sharing_Configuration__c sc:sojSC)
-   {
-	   List<sObject> sobjtmp = retrieveChangeShare(sAction,lAccountShares,sc.Related_Object__c,sc.Lookup_Field_Name__c) ;
-	   if (sobjtmp.size()>0)  sobjRelatedList.addAll(sobjtmp);
-	   
-   }
-   
-   if (sAction =='Delete') {
-	   Delete sobjRelatedList;
-   }
-   else {
-	   
-	   Insert sobjRelatedList;
-   }
-   
-   Return true;
+					 // Set the access level.
+					 actSh.AccountAccessLevel = 'Edit';
+					   
+					 // Set rowCause to 'manual' for manual sharing.
+					 // This line can be omitted as 'manual' is the default value for sharing objects.
+					 actSh.RowCause = 'Manual';
+					 
+					  //Set the portal user Id to share the accounts with
+					   actSh.OpportunityAccessLevel = 'Edit';
+					   actSh.CaseAccessLevel = 'Edit';
+					   
+					  
+					lrtnAcct.add(actSh);
+				}
+			}
+			
+		}
+		
+	}
+	return lrtnAcct; 
+	
 }
+
 
 
 public static List<sObject> retrieveChangeShare(String sAction, List<AccountShare> lAccountShares,String strLKObject, String strLKField){ 
