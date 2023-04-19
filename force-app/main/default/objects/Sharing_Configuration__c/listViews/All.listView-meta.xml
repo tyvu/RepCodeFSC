@@ -5,6 +5,7 @@
     <columns>Primary_Object__c</columns>
     <columns>Related_Object__c</columns>
     <columns>Lookup_Field_Name__c</columns>
+    <columns>Active__c</columns>
     <filterScope>Everything</filterScope>
     <label>All</label>
 </ListView>
