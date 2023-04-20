@@ -1,5 +1,6 @@
 public with sharing class AccountRepCodeSharing {
     
+	/* this method does not need anymore, since sharing model now is initiated from Financial Account object 
 	public static boolean manualUserRepCodeChangeShare(String sAction, Map<ID,Rep_Code_User__c> rcOldMaps, Map<ID,Rep_Code_User__c> rcNewMaps){ 
 	   // Create/update new sharing object for Account and related objects
 	   List<AccountShare> acctShares = new List<AccountShare>();
@@ -122,7 +123,8 @@ public with sharing class AccountRepCodeSharing {
 	   }
 	 return true;
   }	
-  
+  */
+
   public static boolean manualAccountRepCodeChangeShare(String sAction, Map<ID,Account_Rep_Code__c> arcOlds, Map<ID,Account_Rep_Code__c> arcNews){
 	 // Create new sharing object for the custom object Job.
 	 List<AccountShare> acctShares = new List<AccountShare>();
@@ -352,9 +354,18 @@ public static List<sObject> retrieveChangeShare(String sAction, List<AccountShar
 		strObjShare = strLKObject.replace('__c','__Share');
 	}
 		
-		
+	//check if it is leadshare then field is leadid
+	String strShareID = 'ParentId';
+	string strAccessLevel = 'AccessLevel' ;
+	if (strObjShare == 'LeadShare') 
+	{
+		strShareID = 'LeadID';
+		strAccessLevel = 'LeadAccessLevel';
+
+	}
+
 	if (sAction =='Delete') { //remove sharing
-		String sqlQry = 'SELECT Id, UserOrGroupId, ParentId, RowCause FROM ' + strObjShare + ' where UserOrGroupId IN :userIDs AND ParentId in :sobjRelated and RowCause= \'Manual\' ' ;
+		String sqlQry = 'SELECT Id, UserOrGroupId, ' + strShareID +', RowCause FROM ' + strObjShare + ' where UserOrGroupId IN :userIDs AND ' + strShareID + ' in :sobjRelated and RowCause= \'Manual\' ' ;
 		sobjList = Database.query(sqlQry);
 		
 		
@@ -370,10 +381,12 @@ public static List<sObject> retrieveChangeShare(String sAction, List<AccountShar
 					String objName = strObjShare;
 					 
 					 sObject fShares = Schema.getGlobalDescribe().get(objName).newSObject();
-					 fShares.put('ParentId', rc.id) ;
+					 //fShares.put('ParentId', rc.id) ;
+					 fShares.put(strShareID, rc.id) ;
 					 fShares.put('UserOrGroupId', ash.UserOrGroupId) ;
 					 fShares.put('RowCause', 'Manual') ;
-					 fShares.put('AccessLevel', 'Edit') ;
+					 //fShares.put('AccessLevel', 'Edit') ;
+					 fShares.put(strAccessLevel, 'Edit') ;
 					
 					
 					sobjList.add(fShares);

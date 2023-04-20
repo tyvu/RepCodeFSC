@@ -1,4 +1,4 @@
-list<String> lObject = new list<String> {'ActionPlan'};
+list<String> lObject = new list<String> {'ActionPlan','AccountContactRelation'};
 list<String> str = new list<String>();
 list<Sharing_Configuration__c> lsc = [SELECT ID from Sharing_Configuration__c];
 //remove the old records
