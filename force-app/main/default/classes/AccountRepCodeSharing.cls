@@ -60,8 +60,8 @@ public with sharing class AccountRepCodeSharing {
 				Database.DeleteResult[] srs = Database.delete(acctShares,false);
 				system.debug('sharing deletion result - ' + srs);
 			   
-			   //call other methods to delete sharings for related objects
-			   relatedObjectsAccountChangeShare('Delete',acctShares, True);
+			   //call other methods to delete sharings for related objects, excluding Financial Account
+			   relatedObjectsAccountChangeShare('Delete',acctShares, FALSE);
 			   
 			}
 	   
@@ -118,8 +118,8 @@ public with sharing class AccountRepCodeSharing {
 	   {
 		   Database.SaveResult[] srs = Database.insert(acctShares,false);	 
 		   system.debug(srs);
-		   //call other methods to add sharings for related objects
-		   relatedObjectsAccountChangeShare('Adding',acctShares,True);
+		   //call other methods to add sharings for related objects, excluding Financial account
+		   relatedObjectsAccountChangeShare('Adding',acctShares,FALSE);
 	   }
 	 return true;
   }	
@@ -181,8 +181,8 @@ public with sharing class AccountRepCodeSharing {
 			if (acctShares.size()>0) 
 			{
 			   Database.DeleteResult[] srs = Database.delete(acctShares,false); 
-			   //call other methods to delete sharings for related objects
-			   relatedObjectsAccountChangeShare('Delete',acctShares,TRUE);
+			   //call other methods to delete sharings for related objects, excluding Financial Account
+			   relatedObjectsAccountChangeShare('Delete',acctShares,FALSE);
 			}
 	  
 	 } 
@@ -235,8 +235,8 @@ public with sharing class AccountRepCodeSharing {
 	   {
 		   Database.SaveResult[] srs = Database.insert(acctShares,false);
 		   system.debug(srs);
-		   //call other methods to add sharings for related objects
-		   relatedObjectsAccountChangeShare('Adding',acctShares, True);
+		   //call other methods to add sharings for related objects, excluding Financial Account
+		   relatedObjectsAccountChangeShare('Adding',acctShares, FALSE);
 
 	   }
 			 

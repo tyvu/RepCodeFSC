@@ -91,9 +91,19 @@ public class RepCodeSharingTest
 		Rep_Code_Master__c rcm2 = new Rep_Code_Master__c();
 		rcm2.Name = 'REP CODE 2 TEST';
 		insert rcm2;
+
+		//create rep code master
+		Rep_Code_Master__c rcm3 = new Rep_Code_Master__c();
+		rcm3.Name = 'REP CODE 3 TEST';
+		insert rcm3;
+		
+		Rep_Code_Master__c rcm4 = new Rep_Code_Master__c();
+		rcm4.Name = 'REP CODE 4 TEST';
+		insert rcm4;
 		
 		//insert lead
-		Lead ld = new Lead(LastName = 'Test Lead',FinServ__ReferredByContact__c =ctid, Company = 'Test Lead', Email = 'test@abc.com' );
+		Lead ld = new Lead(LastName = 'Test Lead',FinServ__ReferredByContact__c =ctid, Company = 'Test Lead', Email = 'test@abc.com', 
+		Rep_Code__c=rcm1.ID );
 		insert ld;
 
 
@@ -122,6 +132,14 @@ public class RepCodeSharingTest
 			facr.Rep_Code__c = rcm1.ID;
 			update facr;
 
+			//insert lead -rep code
+			Lead_Rep_Code__c lr1 = new Lead_Rep_Code__c (Lead__c = ld.id, Rep_Code__c = rcm1.ID, Active__c = TRUE);
+			insert lr1;
+
+			//update lead - rep code
+			lr1.Rep_Code__c = rcm2.ID;
+			update lr1;
+
 			//create rep code - user   and test for account - repcode - user
 			Rep_Code_User__c rcu = new Rep_Code_User__c(Rep_Code_Master__c = rcm1.ID, User__c = u.ID, 	Active__c = true);	
 			insert rcu;
@@ -138,6 +156,15 @@ public class RepCodeSharingTest
 			arc.Rep_Code__c = rcm2.ID;
 			arc.Account__c = acct.ID;
 			update arc;
+
+			
+			//insert lead -rep code
+			Lead_Rep_Code__c lr3 = new Lead_Rep_Code__c (Lead__c = ld.id, Rep_Code__c = rcm1.ID, Active__c = TRUE);
+			insert lr3;
+
+			//update lead - rep code
+			lr3.Rep_Code__c = rcm2.ID;
+			update lr3;
 
         }
         
